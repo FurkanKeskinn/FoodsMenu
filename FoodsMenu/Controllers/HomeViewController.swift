@@ -7,9 +7,29 @@
 
 import UIKit
 
+enum Item: Int {
+    case All = 0
+    case BestFoods = 1
+    case Bbqs = 2
+    case Breads = 3
+    case Burgers = 4
+    case Chocolates = 5
+    case Desserts = 6
+    case Drinks = 7
+    case FriedChicken = 8
+    case IceCream = 9
+    case Pizzas = 10
+    case Porks = 11
+    case Sandwiches = 12
+    case Sausages = 13
+    case Steaks = 14
+}
+
 class HomeViewController: UIViewController {
     
-     var sectionTitles : [String] = ["All", "Bbqs", "Best-foods", "Breads", "Burgers", "Chocolates", "Desserts", "Drinks", "Fried Chicken", "Ice Cream", "Pizzas", "Porks", "Sandwiches", "Sausages", "Steaks"]
+     var sectionTitles : [String] = ["All", "Best Foods", "Bbqs", "Breads", "Burgers", "Chocolates", "Desserts", "Drinks", "Fried Chicken", "Ice Cream", "Pizzas", "Porks", "Sandwiches", "Sausages", "Steaks"]
+    
+    private var foods: Foods = Foods()
     
     private let searchController : UISearchController = {
         let controller = UISearchController()
@@ -63,12 +83,28 @@ class HomeViewController: UIViewController {
         if let cell = collectionView.cellForItem(at: firstIndexPath) as? TitleCollectionViewCell {
             cell.isSelected = true
         }
+        
+        fetchFirstData()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         applyConstraints()
         
+    }
+    
+    private func fetchFirstData() {
+        APICaller.shared.getAllFooods {[weak self] result in
+            switch result {
+            case .success(let foodss):
+                self?.foods = foodss
+                DispatchQueue.main.async {
+                    self?.foodsTable.reloadData()
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
     }
     
     private func applyConstraints() {
@@ -98,16 +134,22 @@ extension HomeViewController : UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 20
+        return foods.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: FoodsTableViewCell.identifier, for: indexPath) as? FoodsTableViewCell else { return UITableViewCell() }
+        let food = foods[indexPath.row]
+        cell.configure(with: FoodsViewModel(foodsName: food.name ?? "", foodsImage: food.img ?? "", foodsrates: String(food.rate ?? 0) , foodsprice: String(food.price ?? 0) ))
         
-        cell.foodsImageView.image = UIImage(named: "joes")
+       /* cell.foodsImageView.image = UIImage(named: "joes")
         cell.foodsNameLabel.text = "Joe's KC BBQ"
         cell.foodsPriceLabel.text = "110.99 $"
-        cell.foodsRateLabel.text = "5"
+        cell.foodsRateLabel.text = "5"*/
+        
+            
+        
+        
         return cell
     }
     
@@ -121,7 +163,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as! TitleCollectionViewCell
         cell.titleLabel.text = sectionTitles[indexPath.item]
-        
         return cell
     }
         
@@ -129,8 +170,211 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
             if let cell = collectionView.cellForItem(at: indexPath) as? TitleCollectionViewCell {
                 cell.isSelected = true
                 collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
-                       
+                switch indexPath.item {
+                    
+                case Item.All.rawValue:
+                    APICaller.shared.getAllFooods {[weak self] result in
+                        switch result {
+                        case .success(let foodss):
+                            self?.foods = foodss
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                    
+                case Item.BestFoods.rawValue:
+                    APICaller.shared.getBestFooods{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                    
+                case Item.Bbqs.rawValue:
+                    APICaller.shared.getBbqs{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                    
+                case Item.Breads.rawValue:
+                    APICaller.shared.getBreads{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                    
+                case Item.Burgers.rawValue:
+                    APICaller.shared.getBurgers{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                    
+                case Item.Chocolates.rawValue:
+                    
+                    APICaller.shared.getChocolates{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                case Item.Desserts.rawValue:
+                    
+                    APICaller.shared.getDesserts{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                case Item.Drinks.rawValue:
+                    
+                    APICaller.shared.getDrinks{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                case Item.FriedChicken.rawValue:
+                    
+                    APICaller.shared.getFriedChicken{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                case Item.IceCream.rawValue:
+                    
+                    APICaller.shared.getIceCream{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                case Item.Pizzas.rawValue:
+                    
+                    APICaller.shared.getPizzas{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                case Item.Porks.rawValue:
+                    
+                    APICaller.shared.getPorks{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                case Item.Sandwiches.rawValue:
+                    
+                    APICaller.shared.getSandwiches{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                case Item.Sausages.rawValue:
+                    
+                    APICaller.shared.getSausages{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                case Item.Steaks.rawValue:
+                    
+                    APICaller.shared.getSteaks{[weak self] result in
+                        switch result {
+                        case .success(let foods):
+                            self?.foods = foods
+                            DispatchQueue.main.async {
+                                self?.foodsTable.reloadData()
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                    
+                default:
+                    print("Error")
+                    
+                }
             }
+            
+            
             
         }
         

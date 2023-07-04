@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SDWebImage
 
 class FoodsTableViewCell: UITableViewCell {
 
@@ -102,5 +103,13 @@ class FoodsTableViewCell: UITableViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    public func configure(with model: FoodsViewModel){
+        guard let url = URL(string: "\(model.foodsImage)") else { return }
+        foodsImageView.sd_setImage(with: url, completed: nil)
+        foodsNameLabel.text = model.foodsName
+        foodsPriceLabel.text = model.foodsprice
+        foodsRateLabel.text = model.foodsrates
     }
 }
