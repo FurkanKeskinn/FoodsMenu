@@ -21,8 +21,6 @@ class TitleCollectionViewCell: UICollectionViewCell {
             }
         }
     
-    
-    
        override init(frame: CGRect) {
            super.init(frame: frame)
            addSubview(titleLabel)

@@ -20,7 +20,7 @@ class HomeViewController: UIViewController {
     
     private let foodsTable: UITableView = {
        let table = UITableView()
-        table.register(FoodsTableViewCell.self, forCellReuseIdentifier: "cell")
+        table.register(FoodsTableViewCell.self, forCellReuseIdentifier: FoodsTableViewCell.identifier)
         table.translatesAutoresizingMaskIntoConstraints = false
         return table
         
@@ -52,6 +52,17 @@ class HomeViewController: UIViewController {
         view.addSubview(foodsTable)
         view.addSubview(collectionView)
         
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        // Select the first item in the collection view
+        let firstIndexPath = IndexPath(item: 0, section: 0)
+        collectionView.selectItem(at: firstIndexPath, animated: false, scrollPosition: .centeredHorizontally)
+        if let cell = collectionView.cellForItem(at: firstIndexPath) as? TitleCollectionViewCell {
+            cell.isSelected = true
+        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -91,8 +102,12 @@ extension HomeViewController : UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = "test"
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: FoodsTableViewCell.identifier, for: indexPath) as? FoodsTableViewCell else { return UITableViewCell() }
+        
+        cell.foodsImageView.image = UIImage(named: "joes")
+        cell.foodsNameLabel.text = "Joe's KC BBQ"
+        cell.foodsPriceLabel.text = "110.99 $"
+        cell.foodsRateLabel.text = "5"
         return cell
     }
     
@@ -111,18 +126,18 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
     }
         
         func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-                   if let cell = collectionView.cellForItem(at: indexPath) as? TitleCollectionViewCell {
-                       cell.isSelected = true
-                       collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+            if let cell = collectionView.cellForItem(at: indexPath) as? TitleCollectionViewCell {
+                cell.isSelected = true
+                collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
                        
-                   }
+            }
             
         }
         
         func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
-                    if let cell = collectionView.cellForItem(at: indexPath) as? TitleCollectionViewCell {
-                        cell.isSelected = false
-                    }
+            if let cell = collectionView.cellForItem(at: indexPath) as? TitleCollectionViewCell {
+                cell.isSelected = false
+            }
         }
     
     
@@ -135,7 +150,7 @@ extension HomeViewController: UISearchResultsUpdating {
         let searchBar = searchController.searchBar
         
         guard let query = searchBar.text,
-                !query.trimmingCharacters(in: .whitespaces).isEmpty,
+              !query.trimmingCharacters(in: .whitespaces).isEmpty,
               query.trimmingCharacters(in: .whitespaces).count >= 3,
               let resultsController = searchController.searchResultsController else {
             return
