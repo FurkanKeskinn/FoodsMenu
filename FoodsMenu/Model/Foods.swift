@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Food: Decodable {
+struct Food: Codable {
     let id: String?
     let img: String?
     let name: String?

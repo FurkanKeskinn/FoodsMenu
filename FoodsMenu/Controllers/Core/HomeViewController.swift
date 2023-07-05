@@ -29,10 +29,14 @@ class HomeViewController: UIViewController {
     
      var sectionTitles : [String] = ["All", "Best Foods", "Bbqs", "Breads", "Burgers", "Chocolates", "Desserts", "Drinks", "Fried Chicken", "Ice Cream", "Pizzas", "Porks", "Sandwiches", "Sausages", "Steaks"]
     
-    private var foods: Foods = Foods()
+    private var foods: [Food] = [Food]()
+    
+    // Variables to hold data fragments
+    var allFoods: [Food] = [Food]() // Entire dataset
+    var displayedFoods: [Food] = [] // Visible data fragment
     
     private let searchController : UISearchController = {
-        let controller = UISearchController()
+        let controller = UISearchController(searchResultsController: SearchResultsViewController())
         controller.searchBar.placeholder = "Search for a Foods"
         controller.searchBar.searchBarStyle = .minimal
         return controller
@@ -44,6 +48,13 @@ class HomeViewController: UIViewController {
         table.translatesAutoresizingMaskIntoConstraints = false
         return table
         
+    }()
+    
+    private let searchTable : UITableView = {
+        let table = UITableView()
+        table.register(SearchTableViewCell.self, forCellReuseIdentifier: SearchTableViewCell.identifier)
+        table.translatesAutoresizingMaskIntoConstraints = false
+        return table
     }()
     
     private let collectionView: UICollectionView = {
@@ -69,36 +80,70 @@ class HomeViewController: UIViewController {
         navigationItem.searchController = searchController
         searchController.searchResultsUpdater = self
         
+        navigationController?.navigationBar.tintColor = .brown
+        
         view.addSubview(foodsTable)
         view.addSubview(collectionView)
         
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
-        // Select the first item in the collection view
         let firstIndexPath = IndexPath(item: 0, section: 0)
         collectionView.selectItem(at: firstIndexPath, animated: false, scrollPosition: .centeredHorizontally)
         if let cell = collectionView.cellForItem(at: firstIndexPath) as? TitleCollectionViewCell {
             cell.isSelected = true
         }
         
-        fetchFirstData()
+        loadInitialData()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         applyConstraints()
+        searchTable.frame = view.bounds
         
     }
     
+    func scrollToTopOfTableView() {
+        let indexPath = IndexPath(row: 0, section: 0) // İlk satırın indexPath'ini oluştur
+        
+        if foodsTable.numberOfSections > 0 && foodsTable.numberOfRows(inSection: 0) > 0 {
+            foodsTable.scrollToRow(at: indexPath, at: .top, animated: true)
+        }
+    }
+    
+    func loadInitialData() {
+        fetchFirstData()
+        
+        // Assigning the first fragment to the data fragment to be displayed
+        displayedFoods = Array(allFoods.prefix(10)) // A fragment such as the first 10 items can be selected
+        
+        // Updating the TableView
+        foodsTable.reloadData()
+    }
+    
+    func loadNextChunkIfNeeded(for indexPath: IndexPath) {
+        let lastRowIndex = foodsTable.numberOfRows(inSection: 0) - 1
+        if indexPath.row == lastRowIndex {
+            let startIndex = displayedFoods.count
+            let endIndex = min(startIndex + 10, allFoods.count) // A fragment such as 10 items can be selected
+            
+            // Loading new fragment data
+            let newDataChunk = Array(allFoods[startIndex..<endIndex])
+            
+            // Adding new data to the visible data fragment
+            displayedFoods += newDataChunk
+            
+            // Updating the TableView
+            foodsTable.reloadData()
+        }
+    }
+
     private func fetchFirstData() {
         APICaller.shared.getAllFooods {[weak self] result in
             switch result {
-            case .success(let foodss):
-                self?.foods = foodss
+            case .success(let foods):
+                self?.foods = foods
+                self?.allFoods = foods // Update the entire dataset
                 DispatchQueue.main.async {
+                    self?.displayedFoods = Array(foods.prefix(10))
                     self?.foodsTable.reloadData()
                 }
             case .failure(let error):
@@ -124,35 +169,49 @@ class HomeViewController: UIViewController {
         ]
         NSLayoutConstraint.activate(menuCollectionViewConstraints)
     }
-    
 }
 
 extension HomeViewController : UITableViewDelegate, UITableViewDataSource {
     
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 10
-    }
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return foods.count
+        return displayedFoods.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: FoodsTableViewCell.identifier, for: indexPath) as? FoodsTableViewCell else { return UITableViewCell() }
-        let food = foods[indexPath.row]
-        cell.configure(with: FoodsViewModel(foodsName: food.name ?? "", foodsImage: food.img ?? "", foodsrates: String(food.rate ?? 0) , foodsprice: String(food.price ?? 0) ))
         
-       /* cell.foodsImageView.image = UIImage(named: "joes")
-        cell.foodsNameLabel.text = "Joe's KC BBQ"
-        cell.foodsPriceLabel.text = "110.99 $"
-        cell.foodsRateLabel.text = "5"*/
-        
-            
-        
+        // Checking for a valid indexPath.row value
+        if indexPath.row < displayedFoods.count {
+            let food = displayedFoods[indexPath.row]
+            cell.configure(with: FoodsViewModel(foodsName: food.name ?? "", foodsImage: food.img ?? "", foodsRates: String(food.rate ?? 0) , foodsPrice: String(food.price ?? 0) ))
+            } else {
+                cell.configure(with: FoodsViewModel(foodsName: "", foodsImage: "", foodsRates: "", foodsPrice: ""))
+            }
         
         return cell
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let food = foods[indexPath.row]
+        guard let id = food.id else {return}
+        
+        APICaller.shared.getFood(with: id) { [weak self] result in
+            switch result {
+            case .success(let food):
+                DispatchQueue.main.async {
+                    let vc = FoodPreviewViewController()
+                    vc.configure(with: PreviewViewModel(foodName: food.name ?? "", foodImage: food.img ?? "", foodRates: String(food.rate ?? 0), foodPrice: String(food.price ?? 0), foodDsc: food.dsc ?? "", foodCountry: food.country ?? ""))
+                    self?.navigationController?.pushViewController(vc, animated: true)
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        loadNextChunkIfNeeded(for: indexPath)
+    }
 }
 
 extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSource {
@@ -169,14 +228,16 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
         func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
             if let cell = collectionView.cellForItem(at: indexPath) as? TitleCollectionViewCell {
                 cell.isSelected = true
+                scrollToTopOfTableView()
                 collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
                 switch indexPath.item {
                     
                 case Item.All.rawValue:
                     APICaller.shared.getAllFooods {[weak self] result in
                         switch result {
-                        case .success(let foodss):
-                            self?.foods = foodss
+                        case .success(let foods):
+                            self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
                             }
@@ -190,8 +251,10 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
@@ -203,8 +266,10 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
@@ -216,8 +281,11 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
+                                
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
@@ -229,8 +297,10 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
@@ -243,125 +313,155 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
                         }
                     }
+                    
                 case Item.Desserts.rawValue:
                     
                     APICaller.shared.getDesserts{[weak self] result in
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
+                                
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
                         }
                     }
+                    
                 case Item.Drinks.rawValue:
                     
                     APICaller.shared.getDrinks{[weak self] result in
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
                         }
                     }
+                    
                 case Item.FriedChicken.rawValue:
                     
                     APICaller.shared.getFriedChicken{[weak self] result in
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
                         }
                     }
+                    
                 case Item.IceCream.rawValue:
                     
                     APICaller.shared.getIceCream{[weak self] result in
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
                         }
                     }
+                    
                 case Item.Pizzas.rawValue:
                     
                     APICaller.shared.getPizzas{[weak self] result in
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
                         }
                     }
+                    
                 case Item.Porks.rawValue:
                     
                     APICaller.shared.getPorks{[weak self] result in
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
                         }
                     }
+                    
                 case Item.Sandwiches.rawValue:
                     
                     APICaller.shared.getSandwiches{[weak self] result in
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
                         }
                     }
+                    
                 case Item.Sausages.rawValue:
                     
                     APICaller.shared.getSausages{[weak self] result in
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
                         }
                     }
+                    
                 case Item.Steaks.rawValue:
                     
                     APICaller.shared.getSteaks{[weak self] result in
                         switch result {
                         case .success(let foods):
                             self?.foods = foods
+                            self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
@@ -373,9 +473,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     
                 }
             }
-            
-            
-            
         }
         
         func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
@@ -383,25 +480,39 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                 cell.isSelected = false
             }
         }
-    
-    
-    
 }
 
-
-extension HomeViewController: UISearchResultsUpdating {
+extension HomeViewController: UISearchResultsUpdating, SearchResultsViewControllerDelegate{
+    
+    
     func updateSearchResults(for searchController: UISearchController) {
         let searchBar = searchController.searchBar
         
         guard let query = searchBar.text,
               !query.trimmingCharacters(in: .whitespaces).isEmpty,
               query.trimmingCharacters(in: .whitespaces).count >= 3,
-              let resultsController = searchController.searchResultsController else {
+              let resultsController = searchController.searchResultsController as? SearchResultsViewController else {
             return
         }
-        //
+        resultsController.delegate = self
+        let filteredFoods = searchFood(with: query)
+        resultsController.foods = filteredFoods
+        resultsController.searchResultTableView.reloadData()
     }
     
+    func searchFood(with query: String) -> [Food] {
+            let filteredFoods = foods.filter { food in
+                return food.name?.localizedCaseInsensitiveContains(query) ?? false
+            }
+            return filteredFoods
+        }
     
+    func SearchResultsViewControllerDidTapItem(_ viewModel: PreviewViewModel) {
+        DispatchQueue.main.async { [weak self] in
+            let vc = FoodPreviewViewController()
+            vc.configure(with: viewModel)
+            self?.navigationController?.pushViewController(vc, animated: true)
+        }
+    }
 }
 

@@ -10,6 +10,6 @@ import Foundation
 struct FoodsViewModel {
     let foodsName: String
     let foodsImage: String
-    let foodsrates: String
-    let foodsprice: String
+    let foodsRates: String
+    let foodsPrice: String
 }

@@ -26,10 +26,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -43,10 +41,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -60,10 +56,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -77,10 +71,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -94,10 +86,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -111,10 +101,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -128,10 +116,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -144,10 +130,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -160,10 +144,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -177,10 +159,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -194,10 +174,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -210,10 +188,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -227,10 +203,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -244,10 +218,8 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
-                print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
                 
             }
         }
@@ -261,11 +233,24 @@ class APICaller {
             do {
                 let results = try JSONDecoder().decode(Foods.self, from: data)
                 completion(.success(results))
+            }catch{
+                completion(.failure(APIError.failedTogetData))
+                
+            }
+        }
+        task.resume()
+    }
+    
+    func getFood(with id: String, completion: @escaping (Result<Food, Error>) -> Void) {
+        guard let url = URL(string: "\(Constants.baseURL)our-foods/\(id)") else {return}
+        let task = URLSession.shared.dataTask(with: URLRequest(url: url)){ data, _, error in
+            guard let data = data, error == nil else { return }
+            do {
+                let results = try JSONDecoder().decode(Food.self, from: data)
+                completion(.success(results))
                 print(results)
             }catch{
                 completion(.failure(APIError.failedTogetData))
-                print(error.localizedDescription)
-                
             }
         }
         task.resume()

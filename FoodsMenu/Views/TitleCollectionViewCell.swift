@@ -12,6 +12,7 @@ class TitleCollectionViewCell: UICollectionViewCell {
     let titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 17, weight: .medium)
         return label
        }()
     
@@ -40,7 +41,7 @@ class TitleCollectionViewCell: UICollectionViewCell {
     
         private func updateCellAppearance() {
             if isSelected {
-                titleLabel.textColor = .red
+                titleLabel.textColor = .brown
                 titleLabel.transform = CGAffineTransform(translationX: 0, y: -6)// Yukarı kaydırma animasyonu
             } else {
                 titleLabel.textColor = .black

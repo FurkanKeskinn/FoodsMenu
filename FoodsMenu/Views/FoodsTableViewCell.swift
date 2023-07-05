@@ -18,21 +18,21 @@ class FoodsTableViewCell: UITableViewCell {
          imageView.translatesAutoresizingMaskIntoConstraints = false
          imageView.layer.cornerRadius = 10
          imageView.clipsToBounds = true
-         imageView.layer.masksToBounds = true
         return imageView
     }()
 
-    
      let foodsNameLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
+         label.font = .systemFont(ofSize: 18, weight: .bold)
+         label.textColor = .black
         return label
     }()
     
      let foodsPriceLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-         label.textColor = .gray
+         label.textColor = .systemBrown
         return label
     }()
     
@@ -47,7 +47,7 @@ class FoodsTableViewCell: UITableViewCell {
         let image = UIImage(systemName: "star.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 12))
         button.setImage(image, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.tintColor = .systemYellow
+        button.tintColor = .systemBrown
         return button
         
     }()
@@ -63,8 +63,6 @@ class FoodsTableViewCell: UITableViewCell {
         applyConstraints()
         
     }
-    
-    
     
     private func applyConstraints() {
         
@@ -109,7 +107,7 @@ class FoodsTableViewCell: UITableViewCell {
         guard let url = URL(string: "\(model.foodsImage)") else { return }
         foodsImageView.sd_setImage(with: url, completed: nil)
         foodsNameLabel.text = model.foodsName
-        foodsPriceLabel.text = model.foodsprice
-        foodsRateLabel.text = model.foodsrates
+        foodsPriceLabel.text = model.foodsPrice + " $"
+        foodsRateLabel.text = model.foodsRates
     }
 }
