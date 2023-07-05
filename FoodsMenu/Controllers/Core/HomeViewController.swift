@@ -236,10 +236,10 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getAllFooods {[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
+                                self?.displayedFoods = Array(foods.prefix(10))
                             }
                         case .failure(let error):
                             print(error.localizedDescription)
@@ -250,7 +250,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getBestFooods{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -265,7 +264,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getBbqs{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -280,7 +278,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getBreads{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -296,7 +293,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getBurgers{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -312,7 +308,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getChocolates{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -328,7 +323,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getDesserts{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -345,7 +339,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getDrinks{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -361,7 +354,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getFriedChicken{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -377,7 +369,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getIceCream{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -393,7 +384,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getPizzas{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -409,7 +399,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getPorks{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -425,7 +414,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getSandwiches{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -441,7 +429,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getSausages{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -457,7 +444,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
                     APICaller.shared.getSteaks{[weak self] result in
                         switch result {
                         case .success(let foods):
-                            self?.foods = foods
                             self?.allFoods = foods
                             DispatchQueue.main.async {
                                 self?.foodsTable.reloadData()
@@ -483,7 +469,6 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
 }
 
 extension HomeViewController: UISearchResultsUpdating, SearchResultsViewControllerDelegate{
-    
     
     func updateSearchResults(for searchController: UISearchController) {
         let searchBar = searchController.searchBar
